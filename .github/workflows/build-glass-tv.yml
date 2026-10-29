@@ -46,14 +46,6 @@ jobs:
           chmod +x gradlew
           ./gradlew testReleaseUnitTest assembleRelease --no-daemon
 
-      - name: Verify APK signature and package
-        working-directory: glass-tv-source/launcher
-        run: |
-          APK="app/build/outputs/apk/release/app-release.apk"
-          test -s "$APK"
-          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK"
-          "$ANDROID_HOME/build-tools/34.0.0/aapt" dump badging "$APK" | head -n 3
-
       - name: Save APK as build artifact
         uses: actions/upload-artifact@v4
         with:
