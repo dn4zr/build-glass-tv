@@ -49,6 +49,31 @@ jobs:
           chmod +x gradlew
           ./gradlew testReleaseUnitTest assembleRelease --no-daemon
 
+      - name: Verify APK
+        working-directory: launcher
+        shell: bash
+        run: |
+          APK="app/build/outputs/apk/release/app-release.apk"
+          test -f "$APK" || { echo "ERROR: APK not found"; exit 1; }
+
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner -print -quit 2>/dev/null)"
+          AAPT="$(find "$SDK_ROOT/build-tools" -type f -name aapt -print -quit 2>/dev/null)"
+
+          if [ -z "$APKSIGNER" ]; then
+            echo "ERROR: apksigner not found"
+            exit 1
+          fi
+
+          echo "=== APK signature verification ==="
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+
+          if [ -n "$AAPT" ]; then
+            echo "=== APK package details ==="
+            "$AAPT" dump badging "$APK" | head -n 3
+          fi
+
+      
       - name: Save APK as build artifact
         uses: actions/upload-artifact@v4
         with:
